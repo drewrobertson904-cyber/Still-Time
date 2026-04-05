@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Still Time"/>
+<title>Still Time</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;background:#fdf6ed;color:#3a2c1a;height:100vh;overflow:hidden;display:flex;flex-direction:column;max-width:480px;margin:0 auto;}
+#hdr{background:linear-gradient(135deg,#c9973a,#7a5c2e);padding:14px 18px;padding-top:calc(14px + env(safe-area-inset-top,0px));flex-shrink:0;}
+#hdr h1{font-size:26px;font-style:italic;color:#fff;letter-spacing:1px;}
+#hdr p{font-size:11px;color:rgba(255,255,255,0.7);letter-spacing:1.5px;text-transform:uppercase;}
+#tabs{display:flex;background:#4a3520;flex-shrink:0;}
+.tb{flex:1;padding:10px 4px;border:none;background:transparent;color:rgba(255,255,255,0.5);font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;position:relative;}
+.tb span{display:block;font-size:18px;margin-bottom:2px;}
+.tb.on{color:#e8b84b;}
+.tb.on::after{content:'';position:absolute;bottom:0;left:25%;right:25%;height:2px;background:#e8b84b;border-radius:2px;}
+#pages{flex:1;overflow:hidden;position:relative;}
+.pg{position:absolute;inset:0;overflow-y:auto;padding:16px;padding-bottom:calc(16px + env(safe-area-inset-bottom,0px));display:none;}
+.pg.on{display:block;}
+.card{background:#fff;border-radius:14px;box-shadow:0 2px 12px rgba(90,60,20,0.1);margin-bottom:14px;overflow:hidden;}
+.ch{background:linear-gradient(90deg,#f5e8d0,#e8d5b0);padding:12px 16px;border-bottom:1px solid #e8d5b0;}
+.ch h2{font-size:15px;font-weight:700;color:#4a3520;}
+.cb{padding:14px;}
+.streak{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid #e8d5b0;border-radius:12px;padding:10px 14px;margin-bottom:14px;}
+.sn{font-size:36px;font-weight:700;color:#c9973a;line-height:1;}
+.st{font-size:12px;color:#7a6a52;line-height:1.5;}
+.st b{display:block;font-size:13px;color:#4a3520;}
+.ddate{text-align:center;font-size:18px;font-style:italic;color:#7a5c2e;margin-bottom:4px;}
+.dsub{text-align:center;font-size:11px;color:#7a6a52;letter-spacing:1px;text-transform:uppercase;margin-bottom:14px;}
+.verse{background:#f5e8d0;border-left:3px solid #c9973a;border-radius:0 10px 10px 0;padding:10px 14px;margin-bottom:14px;font-size:14px;font-style:italic;color:#4a3520;line-height:1.6;}
+.vref{display:block;font-size:11px;font-style:normal;color:#7a6a52;margin-top:4px;text-transform:uppercase;letter-spacing:1px;}
+.crow{display:flex;align-items:center;gap:12px;padding:13px 16px;cursor:pointer;border-bottom:1px solid #f5e8d0;background:#fff;}
+.crow:last-child{border-bottom:none;}
+.cbox{width:26px;height:26px;border-radius:50%;border:2px solid #e8d5b0;background:#fdf6ed;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px;}
+.cbox.on{background:#4a8c5c;border-color:#4a8c5c;color:#fff;}
+.clbl{font-size:15px;color:#3a2c1a;}
+.clbl.on{color:#4a8c5c;font-weight:700;}
+.nlbl{font-size:11px;color:#7a6a52;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;}
+textarea{width:100%;border:1.5px solid #e8d5b0;border-radius:10px;padding:10px 12px;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;font-size:14px;color:#3a2c1a;background:#fdf6ed;resize:none;min-height:80px;outline:none;}
+textarea:focus{border-color:#c9973a;}
+.savebtn{width:100%;padding:14px;border:none;border-radius:12px;background:linear-gradient(135deg,#c9973a,#7a5c2e);color:#fff;font-size:15px;font-weight:700;cursor:pointer;margin-top:14px;}
+.savebtn:active{opacity:0.85;}
+.stitle{font-size:18px;font-weight:700;color:#4a3520;margin-bottom:4px;}
+.ssub{font-size:12px;color:#7a6a52;margin-bottom:14px;}
+.grow{display:flex;gap:8px;margin-bottom:14px;}
+.ginput{flex:1;border:1.5px solid #e8d5b0;border-radius:10px;padding:10px 12px;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;font-size:14px;color:#3a2c1a;background:#fdf6ed;outline:none;}
+.ginput:focus{border-color:#c9973a;}
+.addbtn{padding:10px 16px;border:none;border-radius:10px;background:#c9973a;color:#fff;font-size:22px;cursor:pointer;}
+.addbtn:active{background:#7a5c2e;}
+.gitem{display:flex;align-items:flex-start;gap:10px;background:#fff;border-radius:10px;padding:12px;margin-bottom:8px;box-shadow:0 1px 6px rgba(90,60,20,0.08);}
+.gbullet{color:#c9973a;font-size:16px;flex-shrink:0;padding-top:1px;}
+.gtxt{flex:1;font-size:14px;color:#3a2c1a;line-height:1.5;word-break:break-word;}
+.delbtn{background:none;border:none;color:#e07070;font-size:16px;cursor:pointer;padding:0 4px;flex-shrink:0;}
+.gempty{text-align:center;color:#7a6a52;font-size:14px;padding:30px 0;font-style:italic;}
+.cnav{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.cnav button{background:none;border:1.5px solid #e8d5b0;border-radius:8px;padding:6px 14px;color:#7a5c2e;font-size:20px;cursor:pointer;}
+.cnav button:active{background:#f5e8d0;}
+.cmnth{font-size:20px;font-style:italic;color:#4a3520;font-weight:600;}
+.cgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;}
+.cdow{font-size:10px;font-weight:700;text-transform:uppercase;color:#7a6a52;text-align:center;padding:4px 0;}
+.cday{aspect-ratio:1;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;color:#3a2c1a;cursor:pointer;}
+.cday.empty{pointer-events:none;}
+.cday.today{font-weight:700;border:2px solid #c9973a;}
+.cday.done{background:#4a8c5c;color:#fff;}
+.cday.missed{background:#c05050;color:#fff;}
+.cday.future{color:#e8d5b0;pointer-events:none;}
+.legend{display:flex;gap:14px;justify-content:center;margin-top:12px;}
+.li{display:flex;align-items:center;gap:5px;font-size:11px;color:#7a6a52;}
+.ld{width:10px;height:10px;border-radius:50%;}
+.ddetail{background:#fff;border-radius:12px;box-shadow:0 2px 12px rgba(90,60,20,0.1);padding:14px;margin-top:14px;}
+.ddetail h3{font-size:15px;font-weight:700;color:#4a3520;margin-bottom:10px;}
+.dcats{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;}
+.dcat{padding:4px 10px;border-radius:20px;font-size:12px;font-weight:700;background:#4a8c5c;color:#fff;}
+.dnotes{font-size:13px;color:#7a6a52;font-style:italic;line-height:1.6;}
+.noentry{font-size:13px;color:#7a6a52;font-style:italic;}
+#toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(10px);background:#4a3520;color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap;z-index:999;}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+
+<div id="hdr">
+  <h1>Still Time</h1>
+  <p>Your daily quiet moment</p>
+</div>
+
+<div id="tabs">
+  <button class="tb on" id="tab-today" onclick="showTab('today')"><span>&#9728;&#65039;</span>Today</button>
+  <button class="tb" id="tab-gratitude" onclick="showTab('gratitude')"><span>&#128591;</span>Gratitude</button>
+  <button class="tb" id="tab-calendar" onclick="showTab('calendar')"><span>&#128197;</span>Calendar</button>
+</div>
+
+<div id="pages">
+
+  <div class="pg on" id="pg-today">
+    <div class="verse" id="verse"></div>
+    <div class="streak">
+      <div class="sn" id="snum">0</div>
+      <div class="st"><b>Day Streak</b>Consecutive days completed</div>
+    </div>
+    <div class="ddate" id="ddate"></div>
+    <div class="dsub">How did you spend your still time today?</div>
+    <div class="card">
+      <div class="ch"><h2>What I Did Today</h2></div>
+      <div id="cats"></div>
+    </div>
+    <div class="card">
+      <div class="ch"><h2>Notes</h2></div>
+      <div class="cb">
+        <div class="nlbl">What was on your heart today?</div>
+        <textarea id="tnotes" rows="4" placeholder="Write freely — this is just for you..."></textarea>
+      </div>
+    </div>
+    <button class="savebtn" onclick="saveToday()">Save Today's Entry</button>
+  </div>
+
+  <div class="pg" id="pg-gratitude">
+    <div class="stitle">Gratitude List</div>
+    <div class="ssub">What are you thankful for today?</div>
+    <div class="grow">
+      <input class="ginput" id="ginput" placeholder="I'm grateful for..." type="text"/>
+      <button class="addbtn" onclick="addG()">+</button>
+    </div>
+    <div id="glist"></div>
+  </div>
+
+  <div class="pg" id="pg-calendar">
+    <div class="cnav">
+      <button onclick="chMonth(-1)">&#8249;</button>
+      <div class="cmnth" id="cmnth"></div>
+      <button onclick="chMonth(1)">&#8250;</button>
+    </div>
+    <div class="cgrid" id="cgrid"></div>
+    <div class="legend">
+      <div class="li"><div class="ld" style="background:#4a8c5c"></div>Completed</div>
+      <div class="li"><div class="ld" style="background:#c05050"></div>Missed</div>
+      <div class="li"><div class="ld" style="border:2px solid #c9973a;box-sizing:border-box;"></div>Today</div>
+    </div>
+    <div id="dda"></div>
+  </div>
+
+</div>
+
+<div id="toast"></div>
+
+<script>
+var CATS = ['Prayed','Bible Study','Reflected','Read'];
+var VERSES = [
+  {t:'Be still, and know that I am God.',r:'Psalm 46:10'},
+  {t:'In repentance and rest is your salvation, in quietness and trust is your strength.',r:'Isaiah 30:15'},
+  {t:'Come to me, all who are weary and burdened, and I will give you rest.',r:'Matthew 11:28'},
+  {t:'The Lord is my shepherd; I shall not want.',r:'Psalm 23:1'},
+  {t:'Do not be anxious about anything, but present your requests to God.',r:'Philippians 4:6'},
+  {t:'Your word is a lamp for my feet, a light on my path.',r:'Psalm 119:105'},
+  {t:'Those who wait on the Lord shall renew their strength.',r:'Isaiah 40:31'}
+];
+var SKEY = 'stilltime_v3';
+var state = {records:{}, gratitude:[]};
+var cyear = 0, cmonth = 0;
+
+function load() {
+  try { var s = localStorage.getItem(SKEY); if (s) state = JSON.parse(s); } catch(e) {}
+}
+function persist() {
+  try { localStorage.setItem(SKEY, JSON.stringify(state)); } catch(e) {}
+}
+function pad(n) { return n < 10 ? '0' + n : '' + n; }
+function tkey() {
+  var d = new Date();
+  return d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate());
+}
+function dkey(y, m, d) { return y + '-' + pad(m+1) + '-' + pad(d); }
+function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function showToast(msg) {
+  var el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(function(){ el.classList.remove('show'); }, 2500);
+}
+
+function showTab(t) {
+  ['today','gratitude','calendar'].forEach(function(name) {
+    document.getElementById('tab-' + name).classList.toggle('on', name === t);
+    document.getElementById('pg-' + name).classList.toggle('on', name === t);
+  });
+  if (t === 'calendar') renderCal();
+}
+
+// ── TODAY ──
+function initToday() {
+  var d = new Date();
+  var DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  var MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('ddate').textContent = DAYS[d.getDay()] + ', ' + MONTHS[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
+  var start = new Date(d.getFullYear(), 0, 0);
+  var doy = Math.floor((d - start) / 86400000);
+  var v = VERSES[doy % VERSES.length];
+  document.getElementById('verse').innerHTML = '"' + v.t + '" <span class="vref">' + v.r + '</span>';
+  renderCats();
+  renderStreak();
+  var rec = state.records[tkey()];
+  if (rec) document.getElementById('tnotes').value = rec.notes || '';
+}
+
+function renderCats() {
+  var k = tkey();
+  var rec = state.records[k] || {cats:[]};
+  var html = '';
+  CATS.forEach(function(c) {
+    var on = rec.cats && rec.cats.indexOf(c) >= 0;
+    html += '<div class="crow" onclick="toggleCat(\'' + c + '\')">'
+          + '<div class="cbox' + (on ? ' on' : '') + '">' + (on ? '&#10003;' : '') + '</div>'
+          + '<span class="clbl' + (on ? ' on' : '') + '">' + c + '</span>'
+          + '</div>';
+  });
+  document.getElementById('cats').innerHTML = html;
+}
+
+function toggleCat(c) {
+  var k = tkey();
+  if (!state.records[k]) state.records[k] = {cats:[], notes:'', saved:false};
+  var r = state.records[k];
+  if (!r.cats) r.cats = [];
+  var i = r.cats.indexOf(c);
+  if (i >= 0) r.cats.splice(i, 1); else r.cats.push(c);
+  persist(); renderCats();
+}
+
+function saveToday() {
+  var k = tkey();
+  if (!state.records[k]) state.records[k] = {cats:[], notes:'', saved:false};
+  state.records[k].notes = document.getElementById('tnotes').value;
+  state.records[k].saved = true;
+  persist(); renderStreak(); showToast('Entry saved!');
+}
+
+function renderStreak() {
+  var streak = 0, today = new Date();
+  for (var i = 0; i < 365; i++) {
+    var d = new Date(today); d.setDate(d.getDate() - i);
+    var k = d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate());
+    var r = state.records[k];
+    if (r && r.cats && r.cats.length > 0) streak++;
+    else if (i > 0) break;
+  }
+  document.getElementById('snum').textContent = streak;
+}
+
+// ── GRATITUDE ──
+function addG() {
+  var inp = document.getElementById('ginput');
+  var v = inp.value.trim(); if (!v) return;
+  state.gratitude.push(v); persist(); inp.value = ''; renderG();
+}
+function delG(i) { state.gratitude.splice(i, 1); persist(); renderG(); }
+function renderG() {
+  var el = document.getElementById('glist');
+  if (!state.gratitude.length) {
+    el.innerHTML = '<div class="gempty">Nothing yet — add something you\'re grateful for</div>';
+    return;
+  }
+  var html = '';
+  state.gratitude.forEach(function(g, i) {
+    html += '<div class="gitem">'
+          + '<span class="gbullet">&#10022;</span>'
+          + '<span class="gtxt">' + esc(g) + '</span>'
+          + '<button class="delbtn" onclick="delG(' + i + ')">&#10005;</button>'
+          + '</div>';
+  });
+  el.innerHTML = html;
+}
+
+// ── CALENDAR ──
+function initCal() { var n = new Date(); cyear = n.getFullYear(); cmonth = n.getMonth(); }
+function chMonth(delta) {
+  cmonth += delta;
+  if (cmonth > 11) { cmonth = 0; cyear++; }
+  if (cmonth < 0) { cmonth = 11; cyear--; }
+  document.getElementById('dda').innerHTML = '';
+  renderCal();
+}
+function renderCal() {
+  var MN = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('cmnth').textContent = MN[cmonth] + ' ' + cyear;
+  var today = new Date(), ty = today.getFullYear(), tm = today.getMonth(), td = today.getDate();
+  var first = new Date(cyear, cmonth, 1).getDay();
+  var dim = new Date(cyear, cmonth+1, 0).getDate();
+  var dows = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+  var html = dows.map(function(d){ return '<div class="cdow">' + d + '</div>'; }).join('');
+  for (var i = 0; i < first; i++) html += '<div class="cday empty"></div>';
+  for (var d = 1; d <= dim; d++) {
+    var k = dkey(cyear, cmonth, d);
+    var rec = state.records[k];
+    var isToday = (d === td && cmonth === tm && cyear === ty);
+    var dt = new Date(cyear, cmonth, d);
+    var todayDt = new Date(ty, tm, td);
+    var isFuture = dt > todayDt;
+    var isPast = dt < todayDt;
+    var cls = 'cday';
+    if (isToday) cls += ' today';
+    if (isFuture) cls += ' future';
+    else if (rec && rec.cats && rec.cats.length > 0) cls += ' done';
+    else if (isPast) cls += ' missed';
+    html += '<div class="' + cls + '" onclick="selDay(' + d + ')">' + d + '</div>';
+  }
+  document.getElementById('cgrid').innerHTML = html;
+}
+function selDay(d) {
+  var MN = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  var k = dkey(cyear, cmonth, d);
+  var rec = state.records[k];
+  var lbl = MN[cmonth] + ' ' + d + ', ' + cyear;
+  var area = document.getElementById('dda');
+  if (!rec || ((!rec.cats || !rec.cats.length) && !rec.notes)) {
+    area.innerHTML = '<div class="ddetail"><h3>' + lbl + '</h3><p class="noentry">No entry recorded for this day.</p></div>';
+    return;
+  }
+  var cats = (rec.cats || []).map(function(c){ return '<span class="dcat">' + c + '</span>'; }).join('');
+  var notes = rec.notes ? '<div class="dnotes">"' + esc(rec.notes) + '"</div>' : '';
+  area.innerHTML = '<div class="ddetail"><h3>' + lbl + '</h3><div class="dcats">' + cats + '</div>' + notes + '</div>';
+}
+
+// ── START ──
+load();
+initToday();
+initCal();
+renderG();
+
+document.getElementById('tnotes').addEventListener('blur', function() {
+  var k = tkey();
+  if (!state.records[k]) state.records[k] = {cats:[], notes:'', saved:false};
+  state.records[k].notes = this.value;
+  persist();
+});
+document.getElementById('ginput').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') addG();
+});
+</script>
+</body>
+</html>
