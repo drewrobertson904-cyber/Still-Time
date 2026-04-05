@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+<meta name="apple-mobile-web-app-title" content="Still Time"/>
+<title>Still Time</title>
+<style>
+  /* System font stack — no external requests needed */
+  :root {
+    --font-serif: Georgia, 'Times New Roman', serif;
+    --font-sans: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+  }
+</style>
+<style>
+  :root {
+    --cream: #fdf6ed;
+    --parchment: #f5e8d0;
+    --warm: #e8d5b0;
+    --gold: #c9973a;
+    --gold-light: #e8b84b;
+    --brown: #7a5c2e;
+    --brown-dark: #4a3520;
+    --text: #3a2c1a;
+    --text-soft: #7a6a52;
+    --green: #4a8c5c;
+    --green-light: #6ab87a;
+    --red: #c05050;
+    --red-light: #e07070;
+    --white: #ffffff;
+    --shadow: rgba(90,60,20,0.12);
+    --tab-h: 64px;
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; background: var(--cream); font-family: var(--font-sans); color: var(--text); overflow: hidden; }
+
+  /* ── APP SHELL ── */
+  #app { display: flex; flex-direction: column; height: 100%; max-width: 480px; margin: 0 auto; position: relative; }
+  #header {
+    background: linear-gradient(135deg, #c9973a 0%, #a07830 60%, #7a5c2e 100%);
+    padding: 16px 20px 14px;
+    padding-top: calc(16px + env(safe-area-inset-top, 0px));
+    flex-shrink: 0;
+    box-shadow: 0 2px 12px var(--shadow);
+  }
+  #header h1 { font-family: var(--font-serif); font-size: 28px; font-weight: 300; color: #fff; letter-spacing: 2px; font-style: italic; }
+  #header p { font-size: 11px; color: rgba(255,255,255,0.75); letter-spacing: 1.5px; text-transform: uppercase; margin-top: 1px; }
+
+  /* ── TABS ── */
+  #tabs {
+    display: flex; background: var(--brown-dark);
+    flex-shrink: 0;
+  }
+  .tab-btn {
+    flex: 1; padding: 12px 4px; border: none; background: transparent;
+    color: rgba(255,255,255,0.55); font-family: var(--font-sans);
+    font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase;
+    cursor: pointer; transition: all .2s; position: relative;
+  }
+  .tab-btn.active { color: var(--gold-light); }
+  .tab-btn.active::after {
+    content: ''; position: absolute; bottom: 0; left: 20%; right: 20%;
+    height: 2px; background: var(--gold-light); border-radius: 2px;
+  }
+  .tab-icon { font-size: 16px; display: block; margin-bottom: 2px; }
+
+  /* ── PAGES ── */
+  #pages { flex: 1; overflow: hidden; position: relative; }
+  .page { position: absolute; inset: 0; overflow-y: auto; padding: 20px 16px; padding-bottom: calc(20px + var(--safe-bottom)); display: none; }
+  .page.active { display: block; }
+
+  /* ── TODAY PAGE ── */
+  .today-date {
+    font-family: var(--font-serif); font-size: 22px; font-style: italic;
+    color: var(--brown); text-align: center; margin-bottom: 4px;
+  }
+  .today-sub { text-align: center; font-size: 12px; color: var(--text-soft); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 20px; }
+
+  .card {
+    background: var(--white); border-radius: 16px;
+    box-shadow: 0 2px 16px var(--shadow); margin-bottom: 16px; overflow: hidden;
+  }
+  .card-header {
+    background: linear-gradient(90deg, var(--parchment), var(--warm));
+    padding: 14px 16px; border-bottom: 1px solid var(--warm);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .card-header h2 { font-family: var(--font-serif); font-size: 16px; font-weight: 600; color: var(--brown-dark); }
+  .card-body { padding: 16px; }
+
+  /* Completion toggle */
+  .complete-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 16px; cursor: pointer;
+    border-bottom: 1px solid var(--parchment);
+  }
+  .complete-row:last-child { border-bottom: none; }
+  .check-box {
+    width: 26px; height: 26px; border-radius: 50%;
+    border: 2px solid var(--warm); background: var(--cream);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; transition: all .2s; font-size: 14px;
+  }
+  .check-box.checked { background: var(--green); border-color: var(--green); color: #fff; }
+  .complete-label { font-size: 15px; color: var(--text); transition: color .2s; flex: 1; }
+  .complete-label.checked { color: var(--green); font-weight: 600; }
+
+  /* Notes area */
+  .notes-label { font-size: 12px; color: var(--text-soft); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .notes-input {
+    width: 100%; border: 1.5px solid var(--warm); border-radius: 10px;
+    padding: 10px 12px; font-family: var(--font-sans); font-size: 14px;
+    color: var(--text); background: var(--cream); resize: none;
+    min-height: 80px; outline: none; transition: border-color .2s;
+  }
+  .notes-input:focus { border-color: var(--gold); }
+
+  /* Save button */
+  .save-btn {
+    width: 100%; padding: 14px; border: none; border-radius: 12px;
+    background: linear-gradient(135deg, var(--gold), var(--brown));
+    color: #fff; font-family: var(--font-serif); font-size: 15px; font-weight: 600;
+    cursor: pointer; margin-top: 16px; letter-spacing: 0.5px;
+    box-shadow: 0 4px 12px rgba(122,92,46,0.3);
+    transition: transform .1s, box-shadow .1s;
+  }
+  .save-btn:active { transform: scale(.98); box-shadow: 0 2px 6px rgba(122,92,46,0.2); }
+
+  .streak-badge {
+    display: flex; align-items: center; gap: 8px;
+    background: linear-gradient(90deg, var(--parchment), var(--cream));
+    border: 1px solid var(--warm); border-radius: 12px;
+    padding: 10px 14px; margin-bottom: 16px;
+  }
+  .streak-num { font-family: var(--font-serif); font-size: 32px; font-weight: 600; color: var(--gold); line-height: 1; }
+  .streak-text { font-size: 12px; color: var(--text-soft); line-height: 1.4; }
+  .streak-text strong { display: block; color: var(--brown-dark); font-size: 13px; }
+
+  /* ── GRATITUDE PAGE ── */
+  .section-title { font-family: var(--font-serif); font-size: 18px; font-weight: 600; color: var(--brown-dark); margin-bottom: 4px; }
+  .section-sub { font-size: 12px; color: var(--text-soft); margin-bottom: 16px; }
+
+  .gratitude-input-row { display: flex; gap: 8px; margin-bottom: 16px; }
+  .gratitude-input {
+    flex: 1; border: 1.5px solid var(--warm); border-radius: 10px;
+    padding: 10px 14px; font-family: var(--font-sans); font-size: 14px;
+    color: var(--text); background: var(--cream); outline: none;
+    transition: border-color .2s;
+  }
+  .gratitude-input:focus { border-color: var(--gold); }
+  .add-btn {
+    padding: 10px 16px; border: none; border-radius: 10px;
+    background: var(--gold); color: #fff; font-size: 20px;
+    cursor: pointer; transition: background .2s;
+  }
+  .add-btn:active { background: var(--brown); }
+
+  .gratitude-item {
+    display: flex; align-items: flex-start; gap: 10px;
+    background: var(--white); border-radius: 12px;
+    padding: 12px 14px; margin-bottom: 8px;
+    box-shadow: 0 1px 6px var(--shadow);
+    animation: fadeIn .25s ease;
+  }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
+  .gratitude-bullet { color: var(--gold); font-size: 18px; line-height: 1.5; flex-shrink: 0; }
+  .gratitude-text { flex: 1; font-size: 14px; color: var(--text); line-height: 1.5; word-break: break-word; }
+  .del-btn { background: none; border: none; color: var(--red-light); font-size: 16px; cursor: pointer; padding: 2px 4px; flex-shrink: 0; }
+
+  /* ── CALENDAR PAGE ── */
+  .cal-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .cal-nav button { background: none; border: 1.5px solid var(--warm); border-radius: 8px; padding: 6px 14px; color: var(--brown); font-size: 18px; cursor: pointer; }
+  .cal-nav button:active { background: var(--parchment); }
+  .cal-month { font-family: var(--font-serif); font-size: 22px; font-style: italic; color: var(--brown-dark); }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+  .cal-dow { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--text-soft); text-align: center; padding: 4px 0; }
+  .cal-day {
+    aspect-ratio: 1; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-size: 13px; color: var(--text); cursor: pointer; position: relative;
+    transition: background .15s;
+  }
+  .cal-day:hover { background: var(--parchment); }
+  .cal-day.empty { pointer-events: none; }
+  .cal-day.today { font-weight: 700; border: 2px solid var(--gold); }
+  .cal-day.done { background: var(--green); color: #fff; }
+  .cal-day.done:hover { background: var(--green-light); }
+  .cal-day.missed { background: var(--red); color: #fff; }
+  .cal-day.missed:hover { background: var(--red-light); }
+  .cal-day.future { color: var(--warm); pointer-events: none; }
+
+  /* Detail popup */
+  .day-detail {
+    background: var(--white); border-radius: 16px; box-shadow: 0 2px 16px var(--shadow);
+    padding: 16px; margin-top: 16px;
+  }
+  .day-detail h3 { font-family: var(--font-serif); font-size: 16px; color: var(--brown-dark); margin-bottom: 10px; }
+  .detail-cats { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+  .detail-cat {
+    padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600;
+    background: var(--green); color: #fff;
+  }
+  .detail-notes { font-size: 13px; color: var(--text-soft); line-height: 1.6; font-style: italic; }
+  .no-detail { font-size: 13px; color: var(--text-soft); font-style: italic; }
+
+  .legend { display: flex; gap: 16px; justify-content: center; margin-top: 14px; }
+  .legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text-soft); }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+  /* Toast */
+  #toast {
+    position: fixed; bottom: calc(80px + var(--safe-bottom)); left: 50%; transform: translateX(-50%) translateY(20px);
+    background: var(--brown-dark); color: #fff; padding: 10px 20px; border-radius: 20px;
+    font-size: 13px; opacity: 0; transition: all .3s; pointer-events: none; white-space: nowrap; z-index: 99;
+  }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* Verse banner */
+  .verse-banner {
+    background: linear-gradient(135deg, var(--parchment), var(--warm));
+    border-left: 3px solid var(--gold); border-radius: 0 12px 12px 0;
+    padding: 12px 16px; margin-bottom: 16px;
+    font-family: var(--font-serif); font-size: 15px; font-style: italic;
+    color: var(--brown-dark); line-height: 1.6;
+  }
+  .verse-ref { display: block; font-family: var(--font-sans); font-size: 11px; color: var(--text-soft); font-style: normal; margin-top: 4px; text-transform: uppercase; letter-spacing: 1px; }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="header">
+    <h1>Still Time</h1>
+    <p>Your daily quiet moment</p>
+  </div>
+  <div id="tabs">
+    <button class="tab-btn active" data-tab="today" onclick="switchTab('today')">
+      <span class="tab-icon">☀️</span>Today
+    </button>
+    <button class="tab-btn" data-tab="gratitude" onclick="switchTab('gratitude')">
+      <span class="tab-icon">🙏</span>Gratitude
+    </button>
+    <button class="tab-btn" data-tab="calendar" onclick="switchTab('calendar')">
+      <span class="tab-icon">📅</span>Calendar
+    </button>
+  </div>
+
+  <div id="pages">
+
+    <!-- TODAY -->
+    <div class="page active" id="page-today">
+      <div class="verse-banner" id="verse-banner"></div>
+      <div class="streak-badge">
+        <div class="streak-num" id="streak-num">0</div>
+        <div class="streak-text"><strong>Day Streak</strong>Consecutive days of still time</div>
+      </div>
+      <div class="today-date" id="today-date"></div>
+      <div class="today-sub">How did you spend your still time today?</div>
+
+      <div class="card">
+        <div class="card-header"><h2>✅ What I Did Today</h2></div>
+        <div id="cat-list">
+          <!-- generated -->
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h2>📝 Notes</h2></div>
+        <div class="card-body">
+          <div class="notes-label">What was on your heart today?</div>
+          <textarea class="notes-input" id="today-notes" placeholder="Write freely — this is just for you..."></textarea>
+        </div>
+      </div>
+
+      <button class="save-btn" onclick="saveToday()">💛 Save Today's Entry</button>
+    </div>
+
+    <!-- GRATITUDE -->
+    <div class="page" id="page-gratitude">
+      <div class="section-title">Gratitude List</div>
+      <div class="section-sub">What are you thankful for today?</div>
+      <div class="gratitude-input-row">
+        <input class="gratitude-input" id="grat-input" placeholder="I'm grateful for..." onkeydown="if(event.key==='Enter')addGratitude()"/>
+        <button class="add-btn" onclick="addGratitude()">+</button>
+      </div>
+      <div id="grat-list"></div>
+    </div>
+
+    <!-- CALENDAR -->
+    <div class="page" id="page-calendar">
+      <div class="cal-nav">
+        <button onclick="changeMonth(-1)">‹</button>
+        <div class="cal-month" id="cal-month-label"></div>
+        <button onclick="changeMonth(1)">›</button>
+      </div>
+      <div class="cal-grid" id="cal-grid"></div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div> Completed</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div> Missed</div>
+        <div class="legend-item"><div class="legend-dot" style="border:2px solid var(--gold); box-sizing:border-box;"></div> Today</div>
+      </div>
+      <div id="day-detail-area"></div>
+    </div>
+
+  </div>
+</div>
+<div id="toast"></div>
+
+<script>
+// ── DATA ──
+const CATS = ['Prayed','Bible Study','Reflected','Read'];
+const VERSES = [
+  { text: "Be still, and know that I am God.", ref: "Psalm 46:10" },
+  { text: "In repentance and rest is your salvation, in quietness and trust is your strength.", ref: "Isaiah 30:15" },
+  { text: "Come to me, all you who are weary and burdened, and I will give you rest.", ref: "Matthew 11:28" },
+  { text: "The Lord is my shepherd; I shall not want. He makes me lie down in green pastures.", ref: "Psalm 23:1–2" },
+  { text: "Do not be anxious about anything, but in every situation, by prayer and petition, present your requests to God.", ref: "Philippians 4:6" },
+  { text: "Your word is a lamp for my feet, a light on my path.", ref: "Psalm 119:105" },
+  { text: "Those who wait on the Lord shall renew their strength.", ref: "Isaiah 40:31" },
+];
+
+const STORAGE_KEY = 'still_time_v2';
+let state = { records: {}, gratitude: [] };
+let calViewYear, calViewMonth, selectedCalDay = null;
+
+// Safe storage wrapper — falls back to in-memory if localStorage is blocked (Safari file://)
+const Store = (function() {
+  let _mem = null;
+  function canUseLS() {
+    try { localStorage.setItem('__t','1'); localStorage.removeItem('__t'); return true; } catch(e) { return false; }
+  }
+  return {
+    get: function(key) {
+      try {
+        if (canUseLS()) return localStorage.getItem(key);
+        return _mem;
+      } catch(e) { return _mem; }
+    },
+    set: function(key, val) {
+      try {
+        if (canUseLS()) { localStorage.setItem(key, val); return; }
+        _mem = val;
+      } catch(e) { _mem = val; }
+    }
+  };
+})();
+
+function loadState() {
+  try {
+    const s = Store.get(STORAGE_KEY);
+    if (s) state = JSON.parse(s);
+  } catch(e) { state = { records: {}, gratitude: [] }; }
+}
+function saveState() {
+  try { Store.set(STORAGE_KEY, JSON.stringify(state)); } catch(e) {}
+}
+
+// ── HELPERS ──
+function todayKey() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function dateKey(y,m,d) {
+  return `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+}
+function formatTodayFull() {
+  return new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+}
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2500);
+}
+
+// ── TABS ──
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.tab===tab));
+  document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active', p.id==='page-'+tab));
+  if(tab==='calendar') renderCalendar();
+}
+
+// ── TODAY PAGE ──
+function initToday() {
+  document.getElementById('today-date').textContent = formatTodayFull();
+  // verse of day (rotate by day of year)
+  const doy = Math.floor((Date.now() - new Date(new Date().getFullYear(),0,0))/(1000*60*60*24));
+  const v = VERSES[doy % VERSES.length];
+  document.getElementById('verse-banner').innerHTML = `"${v.text}" <span class="verse-ref">${v.ref}</span>`;
+
+  renderCats();
+  renderStreak();
+
+  const key = todayKey();
+  const rec = state.records[key];
+  if(rec) {
+    document.getElementById('today-notes').value = rec.notes || '';
+  }
+}
+
+function renderCats() {
+  const key = todayKey();
+  const rec = state.records[key] || { cats: [] };
+  const el = document.getElementById('cat-list');
+  el.innerHTML = CATS.map(c => {
+    const checked = rec.cats && rec.cats.includes(c);
+    return `<div class="complete-row" onclick="toggleCat('${c}')">
+      <div class="check-box ${checked?'checked'}">${checked?'✓':''}</div>
+      <span class="complete-label ${checked?'checked'}">${c}</span>
+    </div>`;
+  }).join('');
+}
+
+function toggleCat(cat) {
+  const key = todayKey();
+  if(!state.records[key]) state.records[key] = { cats: [], notes: '', saved: false };
+  const rec = state.records[key];
+  if(!rec.cats) rec.cats = [];
+  const idx = rec.cats.indexOf(cat);
+  if(idx>=0) rec.cats.splice(idx,1); else rec.cats.push(cat);
+  saveState();
+  renderCats();
+}
+
+function saveToday() {
+  const key = todayKey();
+  if(!state.records[key]) state.records[key] = { cats: [], notes: '', saved: false };
+  state.records[key].notes = document.getElementById('today-notes').value;
+  state.records[key].saved = true;
+  saveState();
+  renderStreak();
+  toast('✨ Entry saved!');
+}
+
+function renderStreak() {
+  let streak = 0;
+  const today = new Date();
+  for(let i=0; i<365; i++) {
+    const d = new Date(today); d.setDate(d.getDate()-i);
+    const k = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    const rec = state.records[k];
+    if(rec && rec.cats && rec.cats.length > 0) streak++;
+    else if(i>0) break; // allow today to not be filled yet
+  }
+  document.getElementById('streak-num').textContent = streak;
+}
+
+// ── GRATITUDE PAGE ──
+function addGratitude() {
+  const inp = document.getElementById('grat-input');
+  const val = inp.value.trim();
+  if(!val) return;
+  state.gratitude.push(val);
+  saveState();
+  inp.value='';
+  renderGratitude();
+}
+function removeGratitude(i) {
+  state.gratitude.splice(i,1);
+  saveState();
+  renderGratitude();
+}
+function renderGratitude() {
+  const el = document.getElementById('grat-list');
+  if(!state.gratitude.length) {
+    el.innerHTML = '<div style="text-align:center;color:var(--text-soft);font-size:14px;padding:30px 0;font-style:italic;">Nothing yet — start by adding something you\'re grateful for 🌿</div>';
+    return;
+  }
+  el.innerHTML = state.gratitude.map((g,i)=>`
+    <div class="gratitude-item">
+      <span class="gratitude-bullet">✦</span>
+      <span class="gratitude-text">${escHtml(g)}</span>
+      <button class="del-btn" onclick="removeGratitude(${i})">✕</button>
+    </div>
+  `).join('');
+}
+function escHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ── CALENDAR ──
+function initCalendar() {
+  const now = new Date();
+  calViewYear = now.getFullYear();
+  calViewMonth = now.getMonth();
+}
+function changeMonth(delta) {
+  calViewMonth += delta;
+  if(calViewMonth>11){ calViewMonth=0; calViewYear++; }
+  if(calViewMonth<0){ calViewMonth=11; calViewYear--; }
+  selectedCalDay = null;
+  document.getElementById('day-detail-area').innerHTML='';
+  renderCalendar();
+}
+function renderCalendar() {
+  const mn = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('cal-month-label').textContent = `${mn[calViewMonth]} ${calViewYear}`;
+
+  const today = new Date();
+  const todayY=today.getFullYear(), todayM=today.getMonth(), todayD=today.getDate();
+  const firstDow = new Date(calViewYear,calViewMonth,1).getDay();
+  const daysInMonth = new Date(calViewYear,calViewMonth+1,0).getDate();
+
+  const grid = document.getElementById('cal-grid');
+  const dows = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+  grid.innerHTML = dows.map(d=>`<div class="cal-dow">${d}</div>`).join('');
+
+  // blank cells
+  for(let i=0;i<firstDow;i++) grid.innerHTML += `<div class="cal-day empty"></div>`;
+
+  for(let d=1;d<=daysInMonth;d++){
+    const k = dateKey(calViewYear,calViewMonth,d);
+    const rec = state.records[k];
+    const isToday = (d===todayD && calViewMonth===todayM && calViewYear===todayY);
+    const isPast = new Date(calViewYear,calViewMonth,d) < new Date(todayY,todayM,todayD);
+    const isFuture = new Date(calViewYear,calViewMonth,d) > new Date(todayY,todayM,todayD);
+
+    let cls = 'cal-day';
+    if(isToday) cls+=' today';
+    if(isFuture) cls+=' future';
+    else if(rec && rec.cats && rec.cats.length>0) cls+=' done';
+    else if(isPast) cls+=' missed';
+
+    grid.innerHTML += `<div class="${cls}" onclick="selectCalDay(${d})">${d}</div>`;
+  }
+}
+
+function selectCalDay(d) {
+  selectedCalDay = d;
+  const k = dateKey(calViewYear,calViewMonth,d);
+  const rec = state.records[k];
+  const mn = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const label = `${mn[calViewMonth]} ${d}, ${calViewYear}`;
+  const area = document.getElementById('day-detail-area');
+
+  if(!rec || (!rec.cats?.length && !rec.notes)) {
+    area.innerHTML = `<div class="day-detail"><h3>📅 ${label}</h3><p class="no-detail">No entry recorded for this day.</p></div>`;
+    return;
+  }
+  const catHtml = (rec.cats||[]).map(c=>`<span class="detail-cat">${c}</span>`).join('');
+  const notesHtml = rec.notes ? `<div class="detail-notes">"${escHtml(rec.notes)}"</div>` : '';
+  area.innerHTML = `<div class="day-detail"><h3>📅 ${label}</h3><div class="detail-cats">${catHtml}</div>${notesHtml}</div>`;
+}
+
+// ── INIT ──
+window.onerror = function(msg, src, line, col, err) { console.warn('Still Time error:', msg); return true; };
+document.addEventListener('DOMContentLoaded', function() {
+  loadState();
+  initToday();
+  initCalendar();
+  renderGratitude();
+});
+</script>
+</body>
+</html>
